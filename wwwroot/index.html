@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="User Management System – Create, view, edit and delete users with a modern, responsive interface." />
+    <title>User Management System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- ═══════════════════════════════════════════════
+         BACKGROUND ANIMATED BLOBS
+         ═══════════════════════════════════════════════ -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         HEADER
+         ═══════════════════════════════════════════════ -->
+    <header class="app-header" id="app-header">
+        <div class="header-left">
+            <div class="logo" id="logo">
+                <i data-lucide="users" class="logo-icon"></i>
+                <div>
+                    <h1>UserHub</h1>
+                    <p class="tagline">Management System</p>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="stats-bar" id="stats-bar">
+                <div class="stat-chip" id="stat-total">
+                    <i data-lucide="database"></i>
+                    <span><strong id="total-count">0</strong> Users</span>
+                </div>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle dark / light mode" aria-label="Toggle theme">
+                <i data-lucide="moon" class="theme-icon theme-icon-dark"></i>
+                <i data-lucide="sun" class="theme-icon theme-icon-light"></i>
+            </button>
+            <button class="btn btn-primary btn-add" id="btn-add-user">
+                <i data-lucide="user-plus"></i>
+                <span>Add User</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════
+         MAIN CONTENT
+         ═══════════════════════════════════════════════ -->
+    <main class="main-content" id="main-content">
+
+        <!-- Search / Filter Bar -->
+        <div class="toolbar glass-card" id="toolbar">
+            <div class="search-wrapper" id="search-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Search users by name or email…" autocomplete="off" />
+                <button class="search-clear hidden" id="search-clear" aria-label="Clear search">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="view-toggles" id="view-toggles">
+                <button class="view-btn active" id="view-table" title="Table view" aria-label="Table view">
+                    <i data-lucide="layout-list"></i>
+                </button>
+                <button class="view-btn" id="view-cards" title="Card view" aria-label="Card view">
+                    <i data-lucide="layout-grid"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loader-container" id="loader">
+            <div class="spinner"></div>
+            <p>Loading users…</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state hidden" id="empty-state">
+            <i data-lucide="user-x" class="empty-icon"></i>
+            <h2>No users found</h2>
+            <p>Get started by adding your first user.</p>
+            <button class="btn btn-primary" id="btn-empty-add">
+                <i data-lucide="plus"></i> Add User
+            </button>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div class="table-container glass-card hidden" id="table-container">
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="id">ID <i data-lucide="chevrons-up-down" class="sort-icon"></i></th>
+                        <th class="sortable" data-sort="fullName">Full Name <i data-lucide="chevrons-up-down" class="sort-icon"></i></th>
+                        <th class="sortable" data-sort="email">Email <i data-lucide="chevrons-up-down" class="sort-icon"></i></th>
+                        <th class="sortable" data-sort="birthDate">Birth Date <i data-lucide="chevrons-up-down" class="sort-icon"></i></th>
+                        <th class="sortable" data-sort="registrationDate">Registered <i data-lucide="chevrons-up-down" class="sort-icon"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- CARD VIEW -->
+        <div class="cards-container hidden" id="cards-container"></div>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════
+         MODAL: Add / Edit User
+         ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay hidden" id="modal-overlay">
+        <div class="modal glass-card" id="user-modal" role="dialog" aria-labelledby="modal-title">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New User</h2>
+                <button class="modal-close" id="modal-close" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="user-form" novalidate>
+                <input type="hidden" id="user-id" />
+
+                <div class="form-group" id="fg-fullname">
+                    <label for="input-fullname">
+                        <i data-lucide="user"></i> Full Name
+                    </label>
+                    <input type="text" id="input-fullname" placeholder="e.g. John Doe" required minlength="2" maxlength="100" />
+                    <span class="error-msg" id="err-fullname"></span>
+                </div>
+
+                <div class="form-group" id="fg-email">
+                    <label for="input-email">
+                        <i data-lucide="mail"></i> Email Address
+                    </label>
+                    <input type="email" id="input-email" placeholder="e.g. john@example.com" required maxlength="150" />
+                    <span class="error-msg" id="err-email"></span>
+                </div>
+
+                <div class="form-group" id="fg-birthdate">
+                    <label for="input-birthdate">
+                        <i data-lucide="calendar"></i> Date of Birth
+                    </label>
+                    <input type="date" id="input-birthdate" required />
+                    <span class="error-msg" id="err-birthdate"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" id="btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit">
+                        <i data-lucide="save"></i>
+                        <span id="btn-submit-text">Create User</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MODAL: Delete Confirmation
+         ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay hidden" id="delete-overlay">
+        <div class="modal glass-card modal-sm" id="delete-modal" role="dialog" aria-labelledby="delete-title">
+            <div class="modal-header modal-header-danger">
+                <h2 id="delete-title">Confirm Deletion</h2>
+                <button class="modal-close" id="delete-close" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <i data-lucide="alert-triangle" class="warning-icon"></i>
+                    <p>Are you sure you want to delete <strong id="delete-user-name"></strong>?</p>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost" id="delete-cancel">Cancel</button>
+                <button class="btn btn-danger" id="delete-confirm">
+                    <i data-lucide="trash-2"></i>
+                    Delete User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         TOAST NOTIFICATION CONTAINER
+         ═══════════════════════════════════════════════ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
